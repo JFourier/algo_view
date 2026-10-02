@@ -9,6 +9,7 @@ import { InputEditor } from './components/InputEditor';
 import { CallStackPanel } from './components/CallStackPanel';
 import { UnionFindView } from './components/UnionFindView';
 import { OperationList } from './components/OperationList';
+import { AlgorithmNavigation } from './components/AlgorithmNavigation';
 import styles from './App.module.css';
 import workspace from './components/Workspace.module.css';
 
@@ -69,12 +70,7 @@ export default function App() {
     <aside className={styles.sidebar}>
       <a className={styles.brand} href="./" aria-label="Algo View 首页"><span className={styles.brandMark}><i /><i /><i /></span><span>algo<span className={styles.brandLight}>view</span></span></a>
       <div className={styles.libraryHeading}><Icon name="book" size={17} />算法实验室</div>
-      <nav aria-label="选择算法" className={styles.algorithmNav}>
-        {algorithms.map(item => <button key={item.id} className={styles.algorithmButton} aria-pressed={item.id === algorithm.id} onClick={() => selectAlgorithm(item)}>
-          <span className={styles.algorithmGlyph}>{item.inputKind === 'union-find' ? '⑂' : item.requiresTarget ? '⌕' : '↕'}</span>
-          <span><strong>{item.name}</strong><small>{item.englishName}</small></span><Icon name="chevron" size={14} />
-        </button>)}
-      </nav>
+      <AlgorithmNavigation algorithms={algorithms} selectedId={algorithm.id} onSelect={selectAlgorithm} />
       <div className={styles.sidebarNote}><span className={styles.noteGraphic} aria-hidden="true">[ <b>i</b> ]</span><strong>慢一点，看清每一步。</strong><p>从一行代码，到一次变化。<br />按自己的节奏理解算法。</p></div>
       <div className={styles.sidebarFooter}><span />本地运行 · 自由探索</div>
     </aside>

@@ -13,9 +13,9 @@ export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: 
   const baseline = 62 + max * scale;
   const description = items.map((item, index) => {
     const action = markers.found === index ? '，找到目标' : markers.active?.includes(index)
-      ? snapshot.kind === 'swap' ? '，刚完成交换' : snapshot.kind === 'compare' ? '，正在比较' : '，当前中点'
+      ? snapshot.kind === 'swap' ? '，刚完成交换' : snapshot.kind === 'compare' ? '，正在比较' : markers.pointers?.some(pointer => pointer.label === 'mid' && pointer.index === index) ? '，当前中点' : '，当前元素'
       : markers.sorted?.includes(index) ? '，已就位' : '';
-    return `索引 ${index}：${item.value}${action}`;
+    return `索引 ${index}：${item.value}${action}${markers.pivot?.id === item.id ? '，基准元素' : ''}`;
   }).join('；');
 
   return <div className={styles.arrayScroll}>
@@ -23,7 +23,7 @@ export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: 
       <title>当前数组与索引</title>
       {markers.range && markers.range.start <= markers.range.end && <g>
         <rect x={start + markers.range.start * cell - 4} y="34" width={(markers.range.end - markers.range.start + 1) * cell + 8} height="265" rx="12" className={styles.rangeFill} />
-        <text x={start + markers.range.start * cell + 5} y="23" className={styles.rangeLabel}>候选范围 [{markers.range.start}, {markers.range.end}]</text>
+        <text x={start + markers.range.start * cell + 5} y="23" className={styles.rangeLabel}>{markers.range.label ?? '候选范围'} [{markers.range.start}, {markers.range.end}]</text>
       </g>}
       <line x1="24" x2={width - 24} y1={baseline} y2={baseline} className={styles.baseline} />
       <text x="12" y={baseline + 4} className={styles.axisLabel}>0</text>
@@ -35,10 +35,11 @@ export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: 
         const height = Math.max(4, Math.abs(item.value) * scale);
         const y = item.value >= 0 ? baseline - height : baseline;
         const state = found ? 'found' : active ? 'active' : sorted ? 'sorted' : outside ? 'outside' : 'default';
-        return <g key={item.id} className={styles.element} data-state={state} style={{ transform: `translateX(${start + index * cell}px)`, transition: animate ? undefined : 'none' }}>
+        return <g key={item.id} className={styles.element} data-state={state} data-item={item.id} data-pivot={markers.pivot?.id === item.id} style={{ transform: `translateX(${start + index * cell}px)`, transition: animate ? undefined : 'none' }}>
           <rect x="7" y={y} width={cell - 14} height={height} rx="5" className={styles.bar} />
           <text x={cell / 2} y={item.value < 0 ? y + height + 19 : y - 12} textAnchor="middle" className={styles.value}>{item.value}</text>
-          {(active || sorted || found) && <text x={cell / 2} y="260" textAnchor="middle" className={styles.markLabel}>{found ? '找到' : active ? (snapshot.kind === 'swap' ? '交换' : snapshot.kind === 'compare' ? '比较' : '中点') : '✓'}</text>}
+          {markers.pivot?.id === item.id && <text x={cell / 2} y="244" textAnchor="middle" className={styles.pivotLabel}>基准</text>}
+          {(active || sorted || found) && <text x={cell / 2} y="260" textAnchor="middle" className={styles.markLabel}>{found ? '找到' : active ? (snapshot.kind === 'swap' ? '交换' : snapshot.kind === 'compare' ? '比较' : markers.pointers?.some(pointer => pointer.label === 'mid' && pointer.index === index) ? '中点' : '当前') : '✓'}</text>}
         </g>;
       })}
       {items.map((_, index) => <g key={index}>

@@ -17,6 +17,8 @@
 .element[data-state='sorted'] .bar, .element[data-state='found'] .bar { fill: #8ccab7; stroke: #6fb59f; }
 .element[data-state='outside'] .bar { fill: #e6eaf1; stroke: #d4dce8; }
 .element[data-state='outside'] .value { fill: #7c889d; }
+.element[data-pivot='true'] .bar { stroke: #8461c4; stroke-width: 3; }
+.pivotLabel { fill: #7654b4; font-size: 10px; font-weight: 600; }
 .value { fill: var(--ink); font: 500 16px var(--mono); }
 .markLabel { fill: var(--orange); font-size: 10px; font-weight: 500; }
 .element[data-state='sorted'] .markLabel, .element[data-state='found'] .markLabel { fill: var(--green); }
@@ -37,6 +39,7 @@
 .legend i[data-color='active'] { background: #edb773; }
 .legend i[data-color='sorted'] { background: #8ccab7; }
 .legend i[data-color='range'] { border: 1px dashed #829eda; background: #edf3ff; }
+.legend i[data-color='pivot'] { border: 2px solid #8461c4; background: #f0eafb; }
 .legend .indexHint { font-size: 9px; color: #8995a9; margin-left: auto; }
 .explanation { border-top: 1px solid var(--border); background: #fafbfe; padding: 18px 20px; min-height: 118px; }
 .stepHeading { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 10px; color: #8a96aa; }

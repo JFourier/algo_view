@@ -25,6 +25,7 @@ const rules = { requiresTarget: true, sorted: true };
 
 export const binarySearch: AlgorithmDefinition = {
   id: 'binary-search',
+  inputKind: 'array',
   name: '二分查找',
   englishName: 'Binary Search',
   category: '查找',

@@ -1,10 +1,14 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { algorithms } from './algorithms';
-import type { AlgorithmDefinition, InputDraft } from './engine/types';
+import type { AlgorithmDefinition, InputDraft, Snapshot } from './engine/types';
 import { usePlayer, type PlaybackSpeed } from './player';
 import { ArrayView } from './components/ArrayView';
 import { CodePanel } from './components/CodePanel';
 import { Icon } from './components/Icon';
+import { InputEditor } from './components/InputEditor';
+import { CallStackPanel } from './components/CallStackPanel';
+import { UnionFindView } from './components/UnionFindView';
+import { OperationList } from './components/OperationList';
 import styles from './App.module.css';
 import workspace from './components/Workspace.module.css';
 
@@ -15,7 +19,7 @@ function exampleTrace(algorithm: AlgorithmDefinition) {
 }
 
 const initialTrace = exampleTrace(algorithms[0]);
-const kindNames = { initial: '准备开始', assign: '更新变量', condition: '条件判断', compare: '比较元素', swap: '交换元素', range: '更新范围', complete: '执行完成' };
+const kindNames: Record<Snapshot['kind'], string> = { initial: '准备开始', assign: '更新变量', condition: '条件判断', compare: '比较', swap: '交换元素', range: '更新范围', call: '进入函数', return: '函数返回', visit: '访问节点', link: '连接父节点', compress: '压缩路径', operation: '操作进度', complete: '执行完成' };
 
 export default function App() {
   const [algorithm, setAlgorithm] = useState(algorithms[0]);
@@ -46,6 +50,7 @@ export default function App() {
       dispatch({ type: 'load', trace: algorithm.execute(validation.input) });
       setDraft(nextDraft); setDirty(false); setError('');
     } catch (cause) {
+      dispatch({ type: 'pause' });
       setError(cause instanceof Error ? cause.message : '无法生成演示，请检查输入后重试。');
     }
   }
@@ -66,7 +71,7 @@ export default function App() {
       <div className={styles.libraryHeading}><Icon name="book" size={17} />算法实验室</div>
       <nav aria-label="选择算法" className={styles.algorithmNav}>
         {algorithms.map(item => <button key={item.id} className={styles.algorithmButton} aria-pressed={item.id === algorithm.id} onClick={() => selectAlgorithm(item)}>
-          <span className={styles.algorithmGlyph}>{item.requiresTarget ? '⌕' : '↕'}</span>
+          <span className={styles.algorithmGlyph}>{item.inputKind === 'union-find' ? '⑂' : item.requiresTarget ? '⌕' : '↕'}</span>
           <span><strong>{item.name}</strong><small>{item.englishName}</small></span><Icon name="chevron" size={14} />
         </button>)}
       </nav>
@@ -83,9 +88,9 @@ export default function App() {
 
       <form className={styles.inputPanel} onSubmit={event => { event.preventDefault(); generate(); }}>
         <div className={styles.inputHeading}><strong>输入数据</strong><button type="button" className={styles.exampleButton} onClick={() => generate(algorithm.example)}><Icon name="reset" size={14} />使用示例</button></div>
+        {algorithm.examples && <div className={styles.examples} aria-label="内置示例">{algorithm.examples.map(example => <button type="button" key={example.name} onClick={() => generate(example.draft)}>{example.name}</button>)}</div>}
         <div className={styles.inputFields}>
-          <div className={styles.arrayField}><label className={styles.srOnly} htmlFor="array-input">数组元素</label><span aria-hidden="true">[</span><input id="array-input" value={draft.values} onChange={event => edit({ ...draft, values: event.target.value })} aria-describedby="input-hint input-status" aria-invalid={Boolean(error)} placeholder="留空可演示空数组" autoComplete="off" spellCheck={false} /><span aria-hidden="true">]</span></div>
-          {algorithm.requiresTarget && <label className={styles.targetField} htmlFor="target-input">目标值<input id="target-input" value={draft.target} onChange={event => edit({ ...draft, target: event.target.value })} inputMode="numeric" aria-invalid={Boolean(error)} aria-describedby="input-status" /></label>}
+          <InputEditor draft={draft} requiresTarget={algorithm.requiresTarget} error={Boolean(error)} onChange={edit} />
           <button type="submit" className={styles.generateButton}>生成演示<Icon name="chevron" size={15} /></button>
         </div>
         <p id="input-hint" className={styles.inputHint}>{algorithm.inputHint}</p>
@@ -93,10 +98,11 @@ export default function App() {
       </form>
 
       <div className={styles.workbench}>
+        <div className={styles.dataColumn}>
         <section className={workspace.visualPanel} aria-labelledby="array-title">
           <header className={workspace.panelHeader}><h2 id="array-title"><Icon name="chart" />数据演示</h2><span className={workspace.status} data-complete={complete}>{dirty ? '等待新输入' : complete ? '已完成' : state.playing ? '播放中' : state.index === 0 ? '初始状态' : '已暂停'}</span></header>
-          {dirty ? <div className={workspace.emptyArray}><span>[ … ]</span><strong>准备一组新的数据</strong><p>生成演示后，这里会显示新的执行过程。</p></div> : <ArrayView snapshot={snapshot} animate={state.playing} />}
-          <div className={workspace.legend} aria-label="图例"><span><i data-color="default" />待处理</span><span><i data-color="active" />比较 / 交换</span><span><i data-color="sorted" />{algorithm.requiresTarget ? '找到目标' : '已就位'}</span>{algorithm.requiresTarget && <span><i data-color="range" />候选范围</span>}<span className={workspace.indexHint}>下方数字为索引</span></div>
+          {dirty ? <div className={workspace.emptyArray}><span>[ … ]</span><strong>准备一组新的数据</strong><p>生成演示后，这里会显示新的执行过程。</p></div> : snapshot.unionFind ? <UnionFindView state={snapshot.unionFind} /> : <ArrayView snapshot={snapshot} animate={state.playing} />}
+          {algorithm.inputKind === 'array' && <div className={workspace.legend} aria-label="图例"><span><i data-color="default" />待处理</span><span><i data-color="active" />比较 / 交换</span><span><i data-color="sorted" />{algorithm.requiresTarget ? '找到目标' : '已就位'}</span>{algorithm.requiresTarget ? <span><i data-color="range" />候选范围</span> : snapshot.callStack && <><span><i data-color="range" />当前区间</span><span><i data-color="pivot" />基准元素</span></>}<span className={workspace.indexHint}>下方数字为索引</span></div>}
           <div className={workspace.explanation} aria-live={state.playing ? 'off' : 'polite'}>
             <div className={workspace.stepHeading}><span className={workspace.stepKind} data-kind={snapshot.kind}>{dirty ? '等待生成' : kindNames[snapshot.kind]}</span><span>{dirty || state.index === 0 ? '从初始状态出发' : `第 ${state.index} 步`}</span></div>
             <p data-testid="step-explanation">{dirty ? '输入就绪后，点击「生成演示」；再用「下一步」逐条查看。' : snapshot.explanation}</p>
@@ -105,7 +111,12 @@ export default function App() {
           </div>
           <div className={workspace.variables}><h3>当前变量</h3><dl>{!dirty && snapshot.variables.length ? snapshot.variables.map(variable => <div key={variable.name}><dt>{variable.name}</dt><dd>{variable.value === null ? '—' : String(variable.value)}</dd></div>) : <p>变量将在执行时出现</p>}</dl></div>
         </section>
-        <CodePanel key={algorithm.id} algorithm={algorithm} statementId={dirty ? null : snapshot.statementId} />
+        {!dirty && snapshot.callStack && <CallStackPanel snapshot={snapshot} />}
+        </div>
+        <div className={styles.dataColumn}>
+          <CodePanel key={algorithm.id} algorithm={algorithm} statementId={dirty ? null : snapshot.statementId} execution={dirty ? undefined : snapshot.execution} />
+          {!dirty && snapshot.unionFind && state.trace.input.kind === 'union-find' && <OperationList input={state.trace.input} state={snapshot.unionFind} />}
+        </div>
       </div>
 
       <section className={styles.controls} aria-label="播放控制">

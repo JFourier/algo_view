@@ -39,22 +39,26 @@ describe('registered algorithm execution', () => {
 
   it('does not mutate or freeze caller input and produces independent frozen snapshots', () => {
     for (const algorithm of algorithms) {
-      const input: AlgorithmInput = { values: [1, 2, 2, 5], target: 2 };
+      const validation = algorithm.validate(algorithm.example);
+      if (!validation.ok) throw new Error(validation.error);
+      const input: AlgorithmInput = structuredClone(validation.input);
       const before = structuredClone(input);
       const trace = algorithm.execute(input);
       expect(input).toEqual(before);
       expect(Object.isFrozen(input)).toBe(false);
-      expect(Object.isFrozen(input.values)).toBe(false);
+      if (input.kind !== 'union-find') expect(Object.isFrozen(input.values)).toBe(false);
       expectFrozen(trace);
       for (let index = 1; index < trace.steps.length; index += 1) {
         expect(trace.steps[index].items).not.toBe(trace.steps[index - 1].items);
-        expect(trace.steps[index].items[0]).not.toBe(trace.steps[index - 1].items[0]);
+        if (trace.steps[index].items.length) expect(trace.steps[index].items[0]).not.toBe(trace.steps[index - 1].items[0]);
         expect(trace.steps[index].variables).not.toBe(trace.steps[index - 1].variables);
         expect(trace.steps[index].markers).not.toBe(trace.steps[index - 1].markers);
       }
-      (input.values as number[])[0] = 999;
-      expect(trace.input.values).toEqual(before.values);
-      expect(valuesAt(trace, 0)).toEqual(before.values);
+      if (input.kind !== 'union-find' && before.kind !== 'union-find' && trace.input.kind !== 'union-find') {
+        (input.values as number[])[0] = 999;
+        expect(trace.input.values).toEqual(before.values);
+        expect(valuesAt(trace, 0)).toEqual(before.values);
+      }
     }
   });
 
@@ -65,7 +69,9 @@ describe('registered algorithm execution', () => {
 
   it('reports an explicit step limit error without returning a partial trace', () => {
     for (const algorithm of algorithms) {
-      const input = { values: [1, 2, 3], target: 3 };
+      const validation = algorithm.validate(algorithm.example);
+      if (!validation.ok) throw new Error(validation.error);
+      const input = validation.input;
       const trace = algorithm.execute(input);
       expect(() => algorithm.execute(input, { maxSteps: trace.steps.length - 1 })).toThrow(/步上限/);
       expect(algorithm.execute(input, { maxSteps: trace.steps.length })).toEqual(trace);
@@ -152,7 +158,7 @@ describe('binary search', () => {
     { values: [1, 2, 2, 2, 3], target: 2, index: 2 },
   ])('returns the encountered match or -1 for $values / $target', ({ values, target, index }) => {
     const trace = binarySearch.execute({ values, target });
-    expect(trace.result.index).toBe(index);
+    expect(trace.result).toMatchObject({ index });
     expect(trace.result.kind).toBe(index === -1 ? 'not-found' : 'found');
     expect(trace.steps.every((step) => step.items.map((item) => item.value).join(',') === values.join(','))).toBe(true);
     if (index >= 0) expect(trace.steps.at(-1)?.markers.found).toBe(index);

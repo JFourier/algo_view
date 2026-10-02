@@ -25,6 +25,7 @@ const rules = { requiresTarget: false };
 
 export const bubbleSort: AlgorithmDefinition = {
   id: 'bubble-sort',
+  inputKind: 'array',
   name: '冒泡排序',
   englishName: 'Bubble Sort',
   category: '排序',

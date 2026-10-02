@@ -1,4 +1,4 @@
-import type { AlgorithmInput, InputDraft, ValidationResult } from './types';
+import type { AlgorithmInput, ArrayInput, InputDraft, ValidationResult } from './types';
 
 export const MAX_INPUT_LENGTH = 24;
 export const MIN_VALUE = -999;
@@ -14,6 +14,7 @@ function valueError(value: unknown): boolean {
 }
 
 function inputError(input: AlgorithmInput, rules: InputRules): string | null {
+  if (input.kind === 'union-find') return '此算法需要数组输入。';
   if (!Array.isArray(input.values)) return '请输入整数数组。';
   if (input.values.length > MAX_INPUT_LENGTH) return `最多输入 ${MAX_INPUT_LENGTH} 个整数。`;
   if (Array.from(input.values).some(valueError)) return `数组元素必须是 ${MIN_VALUE} 到 ${MAX_VALUE} 之间的整数。`;
@@ -24,12 +25,13 @@ function inputError(input: AlgorithmInput, rules: InputRules): string | null {
   return null;
 }
 
-export function assertValidInput(input: AlgorithmInput, rules: InputRules): void {
+export function assertValidInput(input: AlgorithmInput, rules: InputRules): asserts input is ArrayInput {
   const error = inputError(input, rules);
   if (error) throw new Error(error);
 }
 
 export function validateDraft(draft: InputDraft, rules: InputRules): ValidationResult {
+  if (draft.kind === 'union-find') return { ok: false, error: '此算法需要数组输入。' };
   const text = draft.values.trim().replaceAll('，', ',');
   const groups = text ? text.split(',') : [];
   if (groups.some((group) => !group.trim())) {

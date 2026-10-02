@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { AlgorithmDefinition } from '../engine/types';
+import type { AlgorithmDefinition, ExecutionContext } from '../engine/types';
 import { Icon } from './Icon';
 import styles from './Workspace.module.css';
 
@@ -15,7 +15,7 @@ async function loadHighlighter() {
   return createHighlighterCore({ langs: [language.default], themes: [theme.default], engine: createJavaScriptRegexEngine() });
 }
 
-export function CodePanel({ algorithm, statementId }: { algorithm: AlgorithmDefinition; statementId: string | null }) {
+export function CodePanel({ algorithm, statementId, execution }: { algorithm: AlgorithmDefinition; statementId: string | null; execution?: ExecutionContext }) {
   const source = algorithm.code.map(line => line.text).join('\n');
   const [tokens, setTokens] = useState<Token[][] | undefined>(() => tokenCache.get(source));
   const scroller = useRef<HTMLDivElement>(null);
@@ -61,6 +61,6 @@ export function CodePanel({ algorithm, statementId }: { algorithm: AlgorithmDefi
         </span>;
       })}</code></pre>
     </div>
-    <footer className={styles.codeFooter}><span className={styles.executionDot} />{lineNumber ? `刚执行完成第 ${lineNumber} 行` : '执行后，这里会标记刚完成的语句'}</footer>
+    <footer className={styles.codeFooter}><span className={styles.executionDot} />{lineNumber ? `${execution?.event === 'call' ? '进入函数，调用位于' : execution?.event === 'return' ? '函数返回，刚执行' : '刚执行完成'}第 ${lineNumber} 行${execution ? ` · ${execution.functionName}（${execution.frameId}）` : ''}` : '执行后，这里会标记刚完成的语句'}</footer>
   </section>;
 }

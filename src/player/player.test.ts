@@ -170,7 +170,7 @@ describe('播放器的公开回放行为', () => {
     state = tick(state);
     state = playerReducer(state, { type: 'reset' });
     expect(state.trace.steps[state.index]).toBe(trace.steps[0]);
-    expect(state.trace.input.values).toEqual([8, 2]);
+    expect(state.trace.input).toEqual({ values: [8, 2] });
   });
 
   it('重新加载同一条轨迹也会使旧回调失效', () => {

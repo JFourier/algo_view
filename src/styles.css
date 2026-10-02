@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+:root {
+  font-family: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #26334d;
+  background: #f5f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --ink: #26334d;
+  --muted: #6c778b;
+  --blue: #3564dc;
+  --blue-soft: #edf2ff;
+  --border: #e5e9f1;
+  --green: #248469;
+  --orange: #bb6819;
+  --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 360px; }
+button, input, select { font: inherit; }
+button, select { cursor: pointer; }
+button { color: inherit; }
+button:disabled { cursor: default; opacity: .4; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+button, input, select { outline: none; }
+:focus-visible { outline: 3px solid #6787e3; outline-offset: 3px; }
+button { transition: background-color 120ms, border-color 120ms; }
+button:not(:disabled):active { transform: translateY(1px); }
+button svg { flex: 0 0 auto; }
+button { touch-action: manipulation; }
+::selection { background: #dbe5ff; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

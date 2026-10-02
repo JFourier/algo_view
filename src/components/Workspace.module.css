@@ -1,0 +1,73 @@
+.visualPanel, .codePanel { border: 1px solid var(--border); border-radius: 10px; background: #fff; overflow: hidden; min-width: 0; }
+.visualPanel { display: flex; flex-direction: column; }
+.panelHeader { min-height: 53px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--border); gap: 12px; }
+.panelHeader h2 { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 600; margin: 0; white-space: nowrap; }
+.panelHeader h2 svg { color: #7b8ba8; }
+.status { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #7b879d; }
+.status::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #a2adc1; }
+.status[data-complete='true'] { color: var(--green); }
+.status[data-complete='true']::before { background: var(--green); }
+.arrayScroll { padding: 16px 14px 0; overflow-x: auto; min-height: 300px; }
+.arraySvg { display: block; width: 100%; height: 285px; }
+.baseline { stroke: #dce4f1; stroke-width: 1; stroke-dasharray: 3 4; }
+.axisLabel { fill: #8996ac; font: 10px var(--mono); }
+.element { transition: transform 180ms ease-out; }
+.bar { fill: #a6bcec; stroke: #91ace4; stroke-width: 1; }
+.element[data-state='active'] .bar { fill: #f4c187; stroke: #dd963d; }
+.element[data-state='sorted'] .bar, .element[data-state='found'] .bar { fill: #8ccab7; stroke: #6fb59f; }
+.element[data-state='outside'] .bar { fill: #e6eaf1; stroke: #d4dce8; }
+.element[data-state='outside'] .value { fill: #7c889d; }
+.value { fill: var(--ink); font: 500 16px var(--mono); }
+.markLabel { fill: var(--orange); font-size: 10px; font-weight: 500; }
+.element[data-state='sorted'] .markLabel, .element[data-state='found'] .markLabel { fill: var(--green); }
+.indexLabel { fill: #8794ab; font: 11px var(--mono); }
+.pointer { stroke: var(--blue); fill: none; stroke-width: 1.4; }
+.pointerLabel { fill: var(--blue); font: 10px var(--mono); }
+.rangeFill { fill: #edf3ff; stroke: #a7bcec; stroke-dasharray: 4 3; }
+.rangeLabel { fill: var(--blue); font-size: 10px; }
+.outsidePointer { font: 10px var(--mono); color: var(--blue); margin: 0 12px 8px; }
+.emptyArray { min-height: 300px; padding: 42px 20px; display: flex; align-items: center; justify-content: center; flex-direction: column; text-align: center; }
+.emptyArray > span { color: #9eb2df; font: 32px var(--mono); margin-bottom: 20px; }
+.emptyArray strong { font-size: 13px; font-weight: 500; }
+.emptyArray p { color: var(--muted); font-size: 11px; line-height: 1.8; }
+.legend { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 13px; padding: 5px 16px 19px; color: #708098; font-size: 9px; }
+.legend > span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 7px; height: 7px; border-radius: 2px; }
+.legend i[data-color='default'] { background: #a6bcec; }
+.legend i[data-color='active'] { background: #edb773; }
+.legend i[data-color='sorted'] { background: #8ccab7; }
+.legend i[data-color='range'] { border: 1px dashed #829eda; background: #edf3ff; }
+.legend .indexHint { font-size: 9px; color: #8995a9; margin-left: auto; }
+.explanation { border-top: 1px solid var(--border); background: #fafbfe; padding: 18px 20px; min-height: 118px; }
+.stepHeading { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 10px; color: #8a96aa; }
+.stepKind { color: #4f6a9e; font-size: 11px; font-weight: 500; }
+.stepKind[data-kind='compare'], .stepKind[data-kind='swap'] { color: var(--orange); }
+.stepKind[data-kind='complete'] { color: var(--green); }
+.explanation p { font-size: 12px; color: #52617c; line-height: 1.9; margin: 12px 0 0; }
+.condition { display: inline-flex; align-items: center; gap: 16px; font-size: 11px; padding: 7px 10px; background: #fff; border: 1px solid var(--border); border-radius: 5px; margin-top: 10px; }
+.condition code { font: 11px var(--mono); }
+.condition > span { font: 10px var(--mono); color: #a15324; }
+.condition > span[data-result='true'] { color: var(--green); }
+.result { font-size: 12px; color: var(--green); margin-top: 8px; line-height: 1.7; }
+.variables { padding: 16px 20px 18px; border-top: 1px solid var(--border); margin-top: auto; }
+.variables h3 { font-size: 10px; color: var(--muted); font-weight: 400; margin: 0 0 11px; }
+.variables dl { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+.variables dl > div { display: flex; align-items: center; border-radius: 5px; background: #f3f6fb; padding: 6px 10px; gap: 15px; font: 11px var(--mono); }
+.variables dt { color: #7c88a0; }
+.variables dd { margin: 0; color: #3f567f; }
+.variables p { font-size: 11px; color: #8b97ac; margin: 0; padding: 5px 0; }
+.codePanel { display: flex; flex-direction: column; }
+.language { font: 10px var(--mono); color: var(--muted); white-space: nowrap; }
+.language > span { padding: 2px 5px; background: #f2f4f8; border-radius: 3px; margin-left: 7px; font: 9px 'DM Sans', 'PingFang SC', sans-serif; }
+.codeScroller { overflow: auto; position: relative; flex: 1; max-height: 590px; min-height: 400px; }
+.code { font: 11px/27px var(--mono); margin: 0; padding: 16px 0 18px; tab-size: 2; }
+.codeLine { display: flex; min-width: max-content; padding: 0 15px 0 0; border-left: 3px solid transparent; }
+.codeLine[data-active='true'] { background: #edf2ff; border-left-color: var(--blue); }
+.lineNumber { user-select: none; color: #a0aec4; width: 48px; flex-shrink: 0; padding: 0 13px 0 6px; display: flex; justify-content: space-between; font-size: 10px; }
+.lineNumber > span { margin-left: auto; }
+.codeLine[data-active='true'] .lineNumber { color: var(--blue); }
+.codeFooter { padding: 13px 20px; font-size: 10px; color: #74819a; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 7px; }
+.executionDot { height: 6px; width: 6px; border-radius: 2px; background: #7395ed; }
+@media (max-width: 1200px) { .panelHeader { padding: 0 16px; } .legend .indexHint { display: none; } .code { font-size: 10px; } .lineNumber { width: 38px; padding-right: 9px; } }
+@media (max-width: 1000px) { .codeScroller { min-height: auto; max-height: 460px; } .code { font-size: 12px; } .arraySvg { height: 300px; } }
+@media (max-width: 700px) { .arraySvg { height: 250px; min-width: 400px; } .arrayScroll { min-height: 266px; padding: 10px 8px 0; } .emptyArray { min-height: 266px; } .explanation, .variables { padding-left: 16px; padding-right: 16px; } .code { font-size: 11px; } .legend { gap: 12px; } }

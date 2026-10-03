@@ -1,0 +1,34 @@
+.view { min-width: 0; }
+.summary { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 16px 20px 12px; color: var(--muted); font-size: 10px; }
+.summary strong { margin-left: 6px; color: var(--ink); font: 11px var(--mono); }
+.pointers { display: flex; flex-wrap: wrap; gap: 7px; padding: 0 20px 13px; }
+.pointers > span { display: inline-flex; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px; background: #fafbfe; }
+.pointers code { font: 10px var(--mono); color: var(--muted); }
+.pointers b { font-size: 11px; font-weight: 400; color: var(--muted); }
+.pointers [data-pointer='current'] { background: var(--blue-soft); }
+.pointers [data-pointer='current'] code { color: var(--blue); }
+.scroller { width: 100%; overflow-x: auto; }
+.list { display: block; width: 100%; height: 240px; }
+.edge { fill: none; stroke: #aabbd6; stroke-width: 1.7; }
+.edge[data-changed='true'] { stroke: var(--blue); stroke-width: 2.7; }
+.node rect { fill: #f3f6fc; stroke: #bbc9df; stroke-width: 1.4; }
+.node[data-current='true'] rect { fill: var(--blue-soft); stroke: var(--blue); stroke-width: 2; }
+.node[data-changed='true'] rect { stroke: var(--blue); stroke-width: 2.7; }
+.value { fill: var(--ink); font: 18px var(--mono); }
+.identity { fill: var(--muted); font: 10px var(--mono); }
+.nextLabel { fill: var(--muted); font: 9px var(--mono); }
+.pointerLabel { fill: var(--blue); font: 10px var(--mono); }
+.nullLabel { fill: var(--muted); font: 12px var(--mono); }
+.details { padding: 12px 20px; border-top: 1px solid var(--border); background: #fafbfe; }
+.details p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 12px; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.details p + p { margin-top: 7px; }
+.details code { color: var(--ink); font: 11px/1.8 var(--mono); overflow-wrap: anywhere; }
+.details .change code { color: var(--blue); }
+.details small, .details .hint { font-size: 9px; color: var(--muted); }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 225px; padding: 25px; text-align: center; }
+.empty > span { margin-bottom: 14px; color: #a3b7df; font: 32px var(--mono); }
+.empty strong { font-size: 12px; font-weight: 500; }
+.empty p { color: var(--muted); font-size: 11px; }
+@media (max-width: 700px) {
+  .summary, .pointers, .details { padding-left: 16px; padding-right: 16px; }
+}

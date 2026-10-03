@@ -46,7 +46,7 @@ describe('registered algorithm execution', () => {
       const trace = algorithm.execute(input);
       expect(input).toEqual(before);
       expect(Object.isFrozen(input)).toBe(false);
-      if (input.kind !== 'union-find') expect(Object.isFrozen(input.values)).toBe(false);
+      if ('values' in input) expect(Object.isFrozen(input.values)).toBe(false);
       expectFrozen(trace);
       for (let index = 1; index < trace.steps.length; index += 1) {
         expect(trace.steps[index].items).not.toBe(trace.steps[index - 1].items);
@@ -54,10 +54,10 @@ describe('registered algorithm execution', () => {
         expect(trace.steps[index].variables).not.toBe(trace.steps[index - 1].variables);
         expect(trace.steps[index].markers).not.toBe(trace.steps[index - 1].markers);
       }
-      if (input.kind !== 'union-find' && before.kind !== 'union-find' && trace.input.kind !== 'union-find') {
+      if ('values' in input && 'values' in before && 'values' in trace.input) {
         (input.values as number[])[0] = 999;
         expect(trace.input.values).toEqual(before.values);
-        expect(valuesAt(trace, 0)).toEqual(before.values);
+        expect(trace.steps[0].linkedList?.nodes.map(node => node.value) ?? valuesAt(trace, 0)).toEqual(before.values);
       }
     }
   });

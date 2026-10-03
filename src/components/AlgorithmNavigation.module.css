@@ -20,7 +20,7 @@
 .algorithmButton[aria-pressed='true'] { border-color: #e1e9ff; background: var(--blue-soft); color: var(--blue); }
 .algorithmButton[aria-pressed='true'] > svg { opacity: 1; }
 @media (max-width: 700px) {
-  .navigation { margin-top: 20px; }
+  .navigation { margin-top: 20px; max-height: min(40vh, 300px); overflow-y: auto; overscroll-behavior: contain; }
   .categories { gap: 6px; }
   .algorithms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

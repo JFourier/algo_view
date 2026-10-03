@@ -25,7 +25,15 @@ export interface UnionFindInput {
   readonly pathCompression: boolean;
 }
 
-export type AlgorithmInput = ArrayInput | UnionFindInput;
+export interface LinkedListInput {
+  readonly kind: 'linked-list';
+  readonly values: readonly number[];
+}
+export interface IntegerInput {
+  readonly kind: 'integer';
+  readonly n: number;
+}
+export type AlgorithmInput = ArrayInput | UnionFindInput | LinkedListInput | IntegerInput;
 export interface ArrayDraft {
   readonly kind?: 'array';
   readonly values: string;
@@ -37,7 +45,15 @@ export interface UnionFindDraft {
   readonly operations: string;
   readonly pathCompression: boolean;
 }
-export type InputDraft = ArrayDraft | UnionFindDraft;
+export interface LinkedListDraft {
+  readonly kind: 'linked-list';
+  readonly values: string;
+}
+export interface IntegerDraft {
+  readonly kind: 'integer';
+  readonly n: string;
+}
+export type InputDraft = ArrayDraft | UnionFindDraft | LinkedListDraft | IntegerDraft;
 export type ValidationResult =
   | { readonly ok: true; readonly input: AlgorithmInput }
   | { readonly ok: false; readonly error: string };
@@ -79,6 +95,23 @@ export interface UnionFindState {
   readonly operationIndex: number | null;
   readonly results: readonly UnionFindOperationResult[];
 }
+export interface LinkedListState {
+  readonly nodes: readonly { readonly id: string; readonly value: number; readonly next: string | null }[];
+  readonly head: string | null;
+  readonly pointers: readonly { readonly label: string; readonly nodeId: string | null }[];
+  readonly change?: { readonly nodeId: string; readonly before: string | null; readonly after: string | null };
+}
+export interface FibonacciState {
+  readonly n: number;
+  readonly calls: readonly { readonly n: number; readonly count: number }[];
+  readonly result?: number;
+}
+export interface DpState {
+  readonly cells: readonly (number | null)[];
+  readonly dependencies: readonly number[];
+  readonly activeIndex?: number;
+  readonly writtenIndex?: number;
+}
 export interface Snapshot {
   readonly statementId: string | null;
   readonly kind: 'initial' | 'assign' | 'condition' | 'compare' | 'swap' | 'range' | 'call' | 'return' | 'visit' | 'link' | 'compress' | 'operation' | 'complete';
@@ -97,11 +130,21 @@ export interface Snapshot {
   readonly callStack?: readonly CallFrame[];
   readonly execution?: ExecutionContext;
   readonly unionFind?: UnionFindState;
+  readonly linkedList?: LinkedListState;
+  readonly fibonacci?: FibonacciState;
+  readonly dp?: DpState;
+  /** Array slots retain their actual values, including temporary copies during shifts. */
+  readonly insertion?: {
+    readonly held: ArrayItem | null;
+    readonly write?: { readonly index: number; readonly sourceIndex?: number };
+  };
 }
 
 export type TraceResult =
   | { readonly kind: 'sorted'; readonly message: string; readonly values?: readonly number[] }
   | { readonly kind: 'found' | 'not-found'; readonly message: string; readonly index: number }
+  | { readonly kind: 'linked-list'; readonly message: string; readonly head: string | null; readonly values: readonly number[] }
+  | { readonly kind: 'number'; readonly message: string; readonly value: number }
   | { readonly kind: 'union-find'; readonly message: string; readonly parent: readonly number[]; readonly size: readonly number[]; readonly count: number; readonly operations: readonly UnionFindOperationResult[] };
 export interface Trace {
   readonly algorithmId: string;
@@ -113,7 +156,7 @@ export interface Trace {
 
 export interface AlgorithmDefinition {
   readonly id: string;
-  readonly inputKind: 'array' | 'union-find';
+  readonly inputKind: 'array' | 'union-find' | 'linked-list' | 'integer';
   readonly name: string;
   readonly englishName: string;
   readonly category: string;

@@ -1,6 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { quickSort } from '../src/algorithms/quick-sort';
 import { unionFind } from '../src/algorithms/union-find';
+import { reverseLinkedList } from '../src/algorithms/reverse-linked-list';
+import { dpFibonacci } from '../src/algorithms/dp-fibonacci';
 import type { UnionFindInput } from '../src/engine/types';
 
 const progress = (page: Page) => page.getByRole('slider', { name: '执行进度' });
@@ -136,5 +138,54 @@ test('手机并查集将 16 节点与 32 操作限制在各自滚动区，压缩
   await expect(page.getByRole('table', { name: '父节点数组', exact: true }).locator('td[data-node="15"][data-parent="15"]')).toHaveCount(1);
   await page.clock.runFor(5000);
   await expect(progress(page)).toHaveValue('0');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('手机链表反转将 24 节点限制在连接滚动区，末端改边仍可回退', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /^链表反转 / }).click();
+  const values = Array.from({ length: 24 }, (_, index) => index % 2 ? -999 : 999);
+  await page.getByRole('textbox', { name: '链表节点' }).fill(values.join(', '));
+  await page.getByRole('button', { name: '生成演示' }).click();
+  const scroller = page.getByRole('region', { name: '链表连接，可横向滚动', exact: true });
+  await expect(scroller.locator('g[data-node]')).toHaveCount(24);
+  await expectContainedHorizontalScroll(page, scroller);
+  const trace = reverseLinkedList.execute({ kind: 'linked-list', values });
+  const changed = trace.steps.findIndex(step => step.linkedList?.change?.nodeId === 'node-23');
+  await seek(page, changed);
+  await expect(scroller.locator('g[data-node="node-23"]')).toHaveAttribute('data-next', 'node-22');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(page.getByRole('button', { name: '下一步', exact: true })).toBeInViewport();
+  await page.screenshot({ path: 'test-results/mobile-linked-list-preview.png', fullPage: true, animations: 'disabled' });
+  await page.getByRole('button', { name: '上一步', exact: true }).click();
+  await expect(scroller.locator('g[data-node="node-23"]')).toHaveAttribute('data-next', 'null');
+  await seek(page, trace.steps.length - 1);
+  await expect(page.getByTestId('list-head')).toHaveText('node-23');
+  await expect(page.getByRole('button', { name: '播放', exact: true })).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('手机 DP 最大输入可横向查看全部状态，写入与依赖不撑宽页面', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /^DP 斐波那契 / }).click();
+  await page.getByRole('textbox', { name: '整数 n' }).fill('10');
+  await page.getByRole('button', { name: '生成演示' }).click();
+  const trace = dpFibonacci.execute({ kind: 'integer', n: 10 });
+  await seek(page, trace.steps.findIndex(step => step.dp?.cells.length === 11));
+  const scroller = page.getByRole('region', { name: 'DP 状态表，可横向滚动', exact: true });
+  await expect(scroller.locator('[data-index][data-value]')).toHaveCount(11);
+  await expectContainedHorizontalScroll(page, scroller);
+  const write = trace.steps.findIndex(step => step.dp?.writtenIndex === 10);
+  await seek(page, write);
+  await expect(scroller.locator('[data-index="10"][data-value]')).toHaveAttribute('data-value', '55');
+  await expect(scroller.locator('[data-index="10"][data-value]')).toHaveAttribute('data-written', 'true');
+  await expect(scroller.locator('[data-dependency="true"]')).toHaveCount(2);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expect(page.getByRole('button', { name: '下一步', exact: true })).toBeInViewport();
+  await page.screenshot({ path: 'test-results/mobile-dp-fibonacci-preview.png', fullPage: true, animations: 'disabled' });
+  await page.getByRole('button', { name: '上一步', exact: true }).click();
+  await expect(scroller.locator('[data-index="10"][data-value]')).toHaveAttribute('data-value', 'null');
+  await seek(page, trace.steps.length - 1);
+  await expect(page.getByRole('region', { name: '数据演示', exact: true }).getByRole('status')).toHaveText(trace.result.message);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });

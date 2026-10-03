@@ -10,6 +10,9 @@ import { CallStackPanel } from './components/CallStackPanel';
 import { UnionFindView } from './components/UnionFindView';
 import { OperationList } from './components/OperationList';
 import { AlgorithmNavigation } from './components/AlgorithmNavigation';
+import { LinkedListView } from './components/LinkedListView';
+import { FibonacciView } from './components/FibonacciView';
+import { DpTableView } from './components/DpTableView';
 import styles from './App.module.css';
 import workspace from './components/Workspace.module.css';
 
@@ -20,7 +23,15 @@ function exampleTrace(algorithm: AlgorithmDefinition) {
 }
 
 const initialTrace = exampleTrace(algorithms[0]);
-const kindNames: Record<Snapshot['kind'], string> = { initial: '准备开始', assign: '更新变量', condition: '条件判断', compare: '比较', swap: '交换元素', range: '更新范围', call: '进入函数', return: '函数返回', visit: '访问节点', link: '连接父节点', compress: '压缩路径', operation: '操作进度', complete: '执行完成' };
+const kindNames: Record<Snapshot['kind'], string> = { initial: '准备开始', assign: '赋值 / 写入', condition: '条件判断', compare: '比较', swap: '交换元素', range: '更新范围', call: '进入函数', return: '函数返回', visit: '访问节点', link: '修改连接', compress: '压缩路径', operation: '操作进度', complete: '执行完成' };
+
+function DataView({ snapshot, animate }: { snapshot: Snapshot; animate: boolean }) {
+  if (snapshot.unionFind) return <UnionFindView state={snapshot.unionFind} />;
+  if (snapshot.linkedList) return <LinkedListView state={snapshot.linkedList} />;
+  if (snapshot.dp) return <DpTableView state={snapshot.dp} />;
+  if (snapshot.fibonacci) return <FibonacciView state={snapshot.fibonacci} />;
+  return <ArrayView snapshot={snapshot} animate={animate} />;
+}
 
 export default function App() {
   const [algorithm, setAlgorithm] = useState(algorithms[0]);
@@ -97,15 +108,15 @@ export default function App() {
         <div className={styles.dataColumn}>
         <section className={workspace.visualPanel} aria-labelledby="array-title">
           <header className={workspace.panelHeader}><h2 id="array-title"><Icon name="chart" />数据演示</h2><span className={workspace.status} data-complete={complete}>{dirty ? '等待新输入' : complete ? '已完成' : state.playing ? '播放中' : state.index === 0 ? '初始状态' : '已暂停'}</span></header>
-          {dirty ? <div className={workspace.emptyArray}><span>[ … ]</span><strong>准备一组新的数据</strong><p>生成演示后，这里会显示新的执行过程。</p></div> : snapshot.unionFind ? <UnionFindView state={snapshot.unionFind} /> : <ArrayView snapshot={snapshot} animate={state.playing} />}
-          {algorithm.inputKind === 'array' && <div className={workspace.legend} aria-label="图例"><span><i data-color="default" />待处理</span><span><i data-color="active" />比较 / 交换</span><span><i data-color="sorted" />{algorithm.requiresTarget ? '找到目标' : '已就位'}</span>{algorithm.requiresTarget ? <span><i data-color="range" />候选范围</span> : snapshot.callStack && <><span><i data-color="range" />当前区间</span><span><i data-color="pivot" />基准元素</span></>}<span className={workspace.indexHint}>下方数字为索引</span></div>}
+          {dirty ? <div className={workspace.emptyArray}><span>[ … ]</span><strong>准备一组新的数据</strong><p>生成演示后，这里会显示新的执行过程。</p></div> : <DataView snapshot={snapshot} animate={state.playing} />}
+          {algorithm.inputKind === 'array' && <div className={workspace.legend} aria-label="图例"><span><i data-color="default" />待处理</span><span><i data-color="active" />{snapshot.insertion ? '比较 / 写入' : '比较 / 交换'}</span><span><i data-color="sorted" />{algorithm.requiresTarget ? '找到目标' : '已就位'}</span>{algorithm.requiresTarget ? <span><i data-color="range" />候选范围</span> : snapshot.insertion ? <span><i data-color="range" />已排序前缀</span> : snapshot.callStack && <><span><i data-color="range" />当前区间</span><span><i data-color="pivot" />基准元素</span></>}<span className={workspace.indexHint}>下方数字为索引</span></div>}
           <div className={workspace.explanation} aria-live={state.playing ? 'off' : 'polite'}>
             <div className={workspace.stepHeading}><span className={workspace.stepKind} data-kind={snapshot.kind}>{dirty ? '等待生成' : kindNames[snapshot.kind]}</span><span>{dirty || state.index === 0 ? '从初始状态出发' : `第 ${state.index} 步`}</span></div>
             <p data-testid="step-explanation">{dirty ? '输入就绪后，点击「生成演示」；再用「下一步」逐条查看。' : snapshot.explanation}</p>
             {!dirty && snapshot.condition && <div className={workspace.condition}><code>{snapshot.condition.expression}</code><span data-result={snapshot.condition.result}>{String(snapshot.condition.result)}</span></div>}
             {complete && <div className={workspace.result} role="status">{state.trace.result.message}</div>}
           </div>
-          <div className={workspace.variables}><h3>当前变量</h3><dl>{!dirty && snapshot.variables.length ? snapshot.variables.map(variable => <div key={variable.name}><dt>{variable.name}</dt><dd>{variable.value === null ? '—' : String(variable.value)}</dd></div>) : <p>变量将在执行时出现</p>}</dl></div>
+          <div className={workspace.variables}><h3>当前变量</h3><dl>{!dirty && snapshot.variables.length ? snapshot.variables.map(variable => <div key={variable.name}><dt>{variable.name}</dt><dd>{variable.value === null ? 'null' : String(variable.value)}</dd></div>) : <p>变量将在执行时出现</p>}</dl></div>
         </section>
         {!dirty && snapshot.callStack && <CallStackPanel snapshot={snapshot} />}
         </div>

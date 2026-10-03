@@ -2,7 +2,7 @@ import type { Snapshot } from '../engine/types';
 import styles from './Workspace.module.css';
 
 export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: boolean }) {
-  const { items, markers } = snapshot;
+  const { items, markers, insertion } = snapshot;
   if (!items.length) return <div className={styles.emptyArray}><span>[ ]</span><strong>这是一个空数组</strong><p>继续执行，观察算法如何处理没有元素的情况。</p></div>;
   const width = Math.max(540, items.length * 62 + 60);
   const cell = Math.min(70, (width - 64) / items.length);
@@ -15,10 +15,15 @@ export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: 
     const action = markers.found === index ? '，找到目标' : markers.active?.includes(index)
       ? snapshot.kind === 'swap' ? '，刚完成交换' : snapshot.kind === 'compare' ? '，正在比较' : markers.pointers?.some(pointer => pointer.label === 'mid' && pointer.index === index) ? '，当前中点' : '，当前元素'
       : markers.sorted?.includes(index) ? '，已就位' : '';
-    return `索引 ${index}：${item.value}${action}${markers.pivot?.id === item.id ? '，基准元素' : ''}`;
+    return `索引 ${index}：${item.value}${action}${markers.pivot?.id === item.id ? '，基准元素' : ''}${insertion?.write?.index === index ? '，刚写入' : ''}`;
   }).join('；');
 
   return <div className={styles.arrayScroll}>
+    {insertion && <div className={styles.heldItem} aria-label="待插入元素暂存区" data-testid="insertion-held">
+      <span>暂存 key</span><strong>{insertion.held ? insertion.held.value : '—'}</strong>
+      <code>{insertion.held?.id ?? '尚未暂存'}</code>
+      <span>{insertion.write ? `刚写入 a[${insertion.write.index}]${insertion.write.sourceIndex === undefined ? ' ← key' : ` ← a[${insertion.write.sourceIndex}]`}` : '右移时保留 key，找到位置后写回'}</span>
+    </div>}
     <svg className={styles.arraySvg} viewBox={`0 0 ${width} 340`} style={{ minWidth: items.length > 9 ? width : undefined }} role="img" aria-label={description}>
       <title>当前数组与索引</title>
       {markers.range && markers.range.start <= markers.range.end && <g>
@@ -31,15 +36,15 @@ export function ArrayView({ snapshot, animate }: { snapshot: Snapshot; animate: 
         const active = markers.active?.includes(index);
         const sorted = markers.sorted?.includes(index);
         const found = markers.found === index;
-        const outside = markers.range && (index < markers.range.start || index > markers.range.end);
+        const outside = !insertion && markers.range && (index < markers.range.start || index > markers.range.end);
         const height = Math.max(4, Math.abs(item.value) * scale);
         const y = item.value >= 0 ? baseline - height : baseline;
         const state = found ? 'found' : active ? 'active' : sorted ? 'sorted' : outside ? 'outside' : 'default';
-        return <g key={item.id} className={styles.element} data-state={state} data-item={item.id} data-pivot={markers.pivot?.id === item.id} style={{ transform: `translateX(${start + index * cell}px)`, transition: animate ? undefined : 'none' }}>
+        return <g key={insertion ? index : item.id} className={styles.element} data-state={state} data-item={item.id} data-index={index} data-write={insertion?.write?.index === index} data-pivot={markers.pivot?.id === item.id} style={{ transform: `translateX(${start + index * cell}px)`, transition: animate && !insertion ? undefined : 'none' }}>
           <rect x="7" y={y} width={cell - 14} height={height} rx="5" className={styles.bar} />
           <text x={cell / 2} y={item.value < 0 ? y + height + 19 : y - 12} textAnchor="middle" className={styles.value}>{item.value}</text>
           {markers.pivot?.id === item.id && <text x={cell / 2} y="244" textAnchor="middle" className={styles.pivotLabel}>基准</text>}
-          {(active || sorted || found) && <text x={cell / 2} y="260" textAnchor="middle" className={styles.markLabel}>{found ? '找到' : active ? (snapshot.kind === 'swap' ? '交换' : snapshot.kind === 'compare' ? '比较' : markers.pointers?.some(pointer => pointer.label === 'mid' && pointer.index === index) ? '中点' : '当前') : '✓'}</text>}
+          {(active || sorted || found) && <text x={cell / 2} y="260" textAnchor="middle" className={styles.markLabel}>{insertion?.write?.index === index ? '写入' : found ? '找到' : active ? (snapshot.kind === 'swap' ? '交换' : snapshot.kind === 'compare' ? '比较' : markers.pointers?.some(pointer => pointer.label === 'mid' && pointer.index === index) ? '中点' : '当前') : '✓'}</text>}
         </g>;
       })}
       {items.map((_, index) => <g key={index}>

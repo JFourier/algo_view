@@ -7,6 +7,10 @@ export function InputEditor({ draft, requiresTarget, error, onChange }: {
   error: boolean;
   onChange: (draft: InputDraft) => void;
 }) {
+  if (draft.kind === 'integer') return <label className={styles.targetField} htmlFor="integer-input">整数 n<input id="integer-input" value={draft.n} inputMode="numeric" onChange={event => onChange({ ...draft, n: event.target.value })} aria-invalid={error} aria-describedby="input-hint input-status" /></label>;
+  if (draft.kind === 'linked-list') return <div className={styles.arrayField}>
+    <label className={styles.srOnly} htmlFor="list-input">链表节点</label><span aria-hidden="true">[</span><input id="list-input" value={draft.values} onChange={event => onChange({ ...draft, values: event.target.value })} aria-describedby="input-hint input-status" aria-invalid={error} placeholder="按顺序输入节点值；留空为空链表" autoComplete="off" spellCheck={false} /><span aria-hidden="true">]</span>
+  </div>;
   if (draft.kind === 'union-find') return <div className={styles.unionInputs}>
     <div className={styles.unionOptions}>
       <label className={styles.targetField} htmlFor="node-count">节点数<input id="node-count" value={draft.nodeCount} inputMode="numeric" onChange={event => onChange({ ...draft, nodeCount: event.target.value })} aria-invalid={error} aria-describedby="input-hint input-status" /></label>
